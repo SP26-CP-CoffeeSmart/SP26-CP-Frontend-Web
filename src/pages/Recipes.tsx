@@ -11,7 +11,9 @@ import {
     PaginationEllipsis,
 } from "@/components/ui/pagination";
 import { Table, TableBody, TableHeader, TableHead, TableRow, TableCell } from "@/components/ui/table";
+import { RecipeCreateDialog } from "@/components/RecipeCreateDialog";
 import { recipeService } from "@/apis/recipe.service";
+import { toast } from "sonner";
 
 type Recipe = {
     recipeId: number;
@@ -26,6 +28,7 @@ export function Recipes() {
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [openCreateDialog, setOpenCreateDialog] = useState(false);
 
     useEffect(() => {
         const fetchRecipes = async () => {
@@ -44,6 +47,20 @@ export function Recipes() {
 
         fetchRecipes();
     }, []);
+
+    const handleCreateRecipe = async (data: any) => {
+        try {
+            // TODO: Call the create recipe API
+            console.log("Create recipe with data:", data);
+            toast.success("Recipe created successfully!");
+            setOpenCreateDialog(false);
+            // Refresh the recipes list
+            // await fetchRecipes();
+        } catch (err) {
+            toast.error("Failed to create recipe");
+            console.error(err);
+        }
+    };
 
     const formatPrice = (value: number | null) => {
         if (!value || Number.isNaN(value)) return "-";
@@ -71,7 +88,7 @@ export function Recipes() {
 
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                             {/* Search */}
-                            <div className="flex items-center gap-2 rounded-full bg-[#F5F3F1] px-4 py-2 w-full sm:w-[260px]">
+                            <div className="flex items-center gap-2 rounded-full bg-[#F5F3F1] px-4 py-2 w-full sm:w-65">
                                 <Search size={16} className="text-[#B0A49E]" />
                                 <input
                                     type="text"
@@ -87,7 +104,10 @@ export function Recipes() {
                                     <span>Filter</span>
                                 </button>
 
-                                <button className="inline-flex items-center gap-2 rounded-full bg-[#573E32] px-4 py-2 text-sm font-medium text-white hover:bg-[#432d23] transition-colors">
+                                <button
+                                    onClick={() => setOpenCreateDialog(true)}
+                                    className="inline-flex items-center gap-2 rounded-full bg-[#573E32] px-4 py-2 text-sm font-medium text-white hover:bg-[#432d23] transition-colors"
+                                >
                                     <Plus size={16} />
                                     <span>Add Recipe</span>
                                 </button>
@@ -201,6 +221,12 @@ export function Recipes() {
                     </div>
                 </div>
             </div>
+
+            <RecipeCreateDialog
+                open={openCreateDialog}
+                onOpenChange={setOpenCreateDialog}
+                onSubmit={handleCreateRecipe}
+            />
         </div>
     );
 }
