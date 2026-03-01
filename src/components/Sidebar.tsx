@@ -1,14 +1,16 @@
 import { ChevronLeft, Home, ShoppingCart, Truck, CreditCard, Package, Settings, Coffee } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSidebar } from '../context/SidebarContext';
-
+import { authService } from '../apis/auth.service';
+import { toast } from 'sonner';
 export function Sidebar() {
     const { isCollapsed, setIsCollapsed } = useSidebar();
     const location = useLocation();
-
+    const navigate = useNavigate();
     const menuItems = [
         { icon: Home, label: 'Home', href: '/dashboard' },
         { icon: Coffee, label: 'Recipes', href: '/recipes' },
+        { icon: Coffee, label: 'Coffee Shop', href: '/coffee-shop' },
         { icon: ShoppingCart, label: 'Orders', href: '/orders' },
         { icon: Truck, label: 'Shipping', href: '/shipping' },
         { icon: CreditCard, label: 'Payment', href: '/payment' },
@@ -17,6 +19,15 @@ export function Sidebar() {
 
     const isActive = (href: string) => {
         return location.pathname === href;
+    };
+    const handleLogout = async () => {
+        try {
+            await authService.logout();
+            navigate("/");
+            toast.success("Logged out successfully");
+        } catch (err: Error | any) {
+            toast.error(err?.message || "Logout failed");
+        }
     };
 
     return (
@@ -27,15 +38,9 @@ export function Sidebar() {
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-[#E0D5D0] h-20">
                 {!isCollapsed && (
-                    <div className="flex items-center gap-3">
-                        <div
-                            className="w-10 h-10 rounded-full bg-center bg-no-repeat bg-cover flex-shrink-0"
-                            style={{
-                                backgroundImage:
-                                    'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAvK60x1CZwyJP76b6CTyDK85FEcicxzqJ44NFpsuQQEzPnpx6Yxn5APQmIFZi48Siyh9DWdRA9pU0rWEjcUlkUqJq0F6I3xalEq5DXktOu_nNqMtWFid1gg8L3Fu12vpCO5lCZ_heHI6r73VOn01WjqKlikv2J6Ne5xpFUzHX4Z1KT6eM9EaxOu4R-EKDABNJJmUCvUC4by9M2gzZ7HUVMvfrLN88yKGRi_LrClDG8takTyJeA4w6e9Va49hoVeEZFHeFjPKEPws0")',
-                            }}
-                        />
-                        <h1 className="text-lg font-bold text-[#573E32] whitespace-nowrap">SmartCoffee</h1>
+                    <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[#4b2c20] text-3xl">coffee</span>
+                        <span className="text-2xl font-bold text-[#4b2c20] tracking-tight">SmartCoffee</span>
                     </div>
                 )}
                 <button
@@ -77,16 +82,16 @@ export function Sidebar() {
 
             {/* Footer */}
             <div className="absolute bottom-4 left-4 right-4 border-t border-[#E0D5D0] pt-4">
-                <Link
-                    to="/"
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-[#573E32] hover:bg-black/5"
+                <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-[#573E32] hover:bg-black/5"
                     title={isCollapsed ? 'Logout' : ''}
                 >
                     <Settings size={20} className="flex-shrink-0" />
                     {!isCollapsed && (
                         <span className="text-sm font-medium leading-normal">Logout</span>
                     )}
-                </Link>
+                </button>
             </div>
         </aside>
     );
