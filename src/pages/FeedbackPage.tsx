@@ -202,50 +202,55 @@ export function FeedbackPage() {
                             <h3 className="text-xl font-bold">Drink Information</h3>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div className="mb-6">
                             {loadingMenuItem || loadingMenu ? (
-                                <div className="col-span-2 md:col-span-4 flex items-center justify-center py-10 text-sm text-[#9a734c]">
+                                <div className="flex items-center justify-center py-10 text-sm text-[#9a734c]">
                                     Đang tải thông tin menu...
                                 </div>
                             ) : orderedMenuItems.length > 0 ? (
-                                orderedMenuItems.map((item) => {
-                                    const isSelected = item.menuItemId === menuItem?.menuItemId;
-                                    const name = item.shopRecipe?.recipeName || item.shopBeverage?.name || 'Đồ uống';
-                                    const subtitle = item.shopBeverage?.beverageCategoryName || item.description || '';
-                                    const imageUrl = item.shopRecipe?.image || item.shopBeverage?.imageUrl || DEFAULT_DRINK_IMAGE;
+                                <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+                                    {orderedMenuItems.map((item) => {
+                                        const isSelected = item.menuItemId === menuItem?.menuItemId;
+                                        const name = item.shopRecipe?.recipeName || item.shopBeverage?.name || 'Đồ uống';
+                                        const sellingPrice = item.sellingPrice || '';
+                                        const imageUrl = item.shopRecipe?.image || item.shopBeverage?.imageUrl || DEFAULT_DRINK_IMAGE;
 
-                                    return (
-                                        <label key={item.menuItemId} className="cursor-pointer group">
-                                            <input
-                                                className="peer sr-only"
-                                                name="drink_type"
-                                                type="radio"
-                                                checked={isSelected}
-                                                readOnly
-                                            />
-                                            <div className="flex flex-col gap-3 pb-3 p-3 rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 hover:bg-gray-50 dark:hover:bg-[#2c2016] transition-all">
-                                                <div className="w-full aspect-square bg-center bg-cover rounded-lg overflow-hidden relative">
-                                                    <div className="absolute inset-0 bg-black/10" />
-                                                    <div
-                                                        className="w-full h-full bg-cover bg-center"
-                                                        data-alt={name}
-                                                        style={{
-                                                            backgroundImage: `url('${imageUrl}')`,
-                                                        }}
-                                                    />
+                                        return (
+                                            <label
+                                                key={item.menuItemId}
+                                                className="cursor-pointer group min-w-[150px] sm:min-w-[180px] md:min-w-[200px]"
+                                            >
+                                                <input
+                                                    className="peer sr-only"
+                                                    name="drink_type"
+                                                    type="radio"
+                                                    checked={isSelected}
+                                                    readOnly
+                                                />
+                                                <div className="flex flex-col gap-3 pb-3 p-3 rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 hover:bg-gray-50 dark:hover:bg-[#2c2016] transition-all">
+                                                    <div className="w-full aspect-square bg-center bg-cover rounded-lg overflow-hidden relative">
+                                                        <div className="absolute inset-0 bg-black/10" />
+                                                        <div
+                                                            className="w-full h-full bg-cover bg-center"
+                                                            data-alt={name}
+                                                            style={{
+                                                                backgroundImage: `url('${imageUrl}')`,
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[#1b140d] dark:text-white text-base font-bold leading-normal">{name}</p>
+                                                        {sellingPrice && (
+                                                            <p className="text-[#9a734c] text-sm font-normal leading-normal">{sellingPrice} VND</p>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-[#1b140d] dark:text-white text-base font-bold leading-normal">{name}</p>
-                                                    {subtitle && (
-                                                        <p className="text-[#9a734c] text-sm font-normal leading-normal">{subtitle}</p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </label>
-                                    );
-                                })
+                                            </label>
+                                        );
+                                    })}
+                                </div>
                             ) : (
-                                <div className="col-span-2 md:col-span-4 flex items-center justify-center py-10 text-sm text-red-500">
+                                <div className="flex items-center justify-center py-10 text-sm text-red-500">
                                     Không tìm thấy danh sách đồ uống trong menu.
                                 </div>
                             )}
