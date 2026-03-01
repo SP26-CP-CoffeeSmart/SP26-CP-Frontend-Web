@@ -1,14 +1,73 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../apis/axios';
 
+interface IngredientResponse {
+    id: number;
+    quantity: number;
+    cost: number;
+    measurement: string;
+    ingredient_id: number;
+    ingredient?: {
+        ingredientId: number;
+        name: string;
+        category: string;
+        image?: string | null;
+    };
+}
+
+interface ShopRecipeResponse {
+    recipeId: number;
+    recipeName: string;
+    image?: string | null;
+    ingredients?: IngredientResponse[];
+}
+
+interface MenuItemResponse {
+    menuItemId: number;
+    menuId: number;
+    description?: string | null;
+    sellingPrice: number;
+    addedDate: string;
+    shopRecipe?: ShopRecipeResponse | null;
+    shopBeverage?: {
+        beverageId: number;
+        name: string;
+        status: string;
+        beverageCategoryId: number;
+        beverageCategoryName: string;
+        imageUrl?: string | null;
+    } | null;
+}
+
+interface MenuGroupResponse {
+    menuGroupId: number;
+    name: string;
+    orderIndex: number;
+    menuItems: MenuItemResponse[];
+}
+
+interface MenuResponse {
+    menuId: number;
+    menuHeaderId: number;
+    versionNumber: string;
+    status: string;
+    created: string;
+    isActive: boolean;
+    image?: string | null;
+    menuGroups: MenuGroupResponse[];
+}
+
+const DEFAULT_DRINK_IMAGE =
+    "https://lh3.googleusercontent.com/aida-public/AB6AXuAVzZS9IjcSAw4o2Xmd5dO5-iTjx_ztFrne56H-Hn_9OPHcTlDQkaKFF1lxXDgyM7dZyCY3_pBA-of-PJSxlw5H5irCy69OQkdcB0_OLDBk8y7iEtwTTGWQidBXWdLcWzbxYfz0YzVETp-lj3vbX8hVBYThGaSfTP4j3O6qyKHjQ77fp4b5IZo6Z2_k1W-hrddWxvnnK8_a7BNhmwmBynw3pKWsjiT4iWRq85QK9iBStVZ4AqZucwRHUY2h0LV-Lu5uq5bx3_pFZdk";
+
 export function FeedbackPage() {
     const { id } = useParams<{ id: string }>();
     const feedbackId = id ?? '1';
-    const menuId = Number(id) || 0;
+    // id trên URL là menuItemId
+    const menuItemId = Number(id) || 0;
 
-    const [drinkName, setDrinkName] = useState('');
     const [isFirstTimeTrying, setIsFirstTimeTrying] = useState<boolean | null>(null);
     const [strength, setStrength] = useState('');
     const [acidity, setAcidity] = useState('');
@@ -18,14 +77,70 @@ export function FeedbackPage() {
     const [priceRating, setPriceRating] = useState('');
     const [repurchasable, setRepurchasable] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [menuItem, setMenuItem] = useState<MenuItemResponse | null>(null);
+    const [loadingMenuItem, setLoadingMenuItem] = useState(false);
+    const [menuItems, setMenuItems] = useState<MenuItemResponse[]>([]);
+    const [loadingMenu, setLoadingMenu] = useState(false);
+
+    useEffect(() => {
+        if (!menuItemId) {
+            return;
+        }
+
+        const fetchMenuItem = async () => {
+            try {
+                setLoadingMenuItem(true);
+                const response = await api.get<MenuItemResponse>(`/MenuItem/${menuItemId}`);
+                setMenuItem(response.data);
+            } catch (error) {
+                console.error('Fetch menu item error', error);
+                toast.error('Không tải được thông tin đồ uống.');
+            } finally {
+                setLoadingMenuItem(false);
+            }
+        };
+
+        fetchMenuItem();
+    }, [menuItemId]);
+
+    // Sau khi biết menuId từ menuItem, gọi tiếp /Menu/{menuId} để lấy các menu items khác
+    useEffect(() => {
+        if (!menuItem?.menuId) {
+            return;
+        }
+
+        const fetchMenu = async () => {
+            try {
+                setLoadingMenu(true);
+                const response = await api.get<MenuResponse>(`/Menu/${menuItem.menuId}`);
+                const groups = response.data.menuGroups ?? [];
+                const items = groups.flatMap((g) => g.menuItems ?? []);
+                setMenuItems(items);
+            } catch (error) {
+                console.error('Fetch menu error', error);
+                toast.error('Không tải được danh sách đồ uống trong menu.');
+            } finally {
+                setLoadingMenu(false);
+            }
+        };
+
+        fetchMenu();
+    }, [menuItem?.menuId]);
+
+    const orderedMenuItems = menuItems.slice().sort((a, b) => {
+        if (!menuItem) return 0;
+        if (a.menuItemId === menuItem.menuItemId) return -1;
+        if (b.menuItemId === menuItem.menuItemId) return 1;
+        return 0;
+    });
 
     const handleSubmit = async () => {
         try {
             setSubmitting(true);
 
             const payload = {
-                menuId,
-                drinkName: drinkName || undefined,
+                // Backend đang mong đợi menuId (thực chất là menuItemId được gửi từ URL)
+                menuId: menuItemId,
                 isFirstTimeTrying: isFirstTimeTrying ?? undefined,
                 strength: strength || undefined,
                 acidity: acidity || undefined,
@@ -39,6 +154,16 @@ export function FeedbackPage() {
             await api.post('/Feedback/MenuItem', payload);
 
             toast.success('Gửi phản hồi thành công! Cảm ơn bạn.');
+
+            // Reset form state after successful submit
+            setIsFirstTimeTrying(null);
+            setStrength('');
+            setAcidity('');
+            setBitterness('');
+            setSweetness('');
+            setRating(0);
+            setPriceRating('');
+            setRepurchasable('');
         } catch (error) {
             console.error('Submit feedback error', error);
             toast.error('Gửi phản hồi thất bại. Vui lòng thử lại.');
@@ -76,111 +201,69 @@ export function FeedbackPage() {
                             <span className="material-symbols-outlined text-primary">info</span>
                             <h3 className="text-xl font-bold">Drink Information</h3>
                         </div>
-                        {/* 
-                        <div className="mb-8">
-                            <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                                Search for your drink
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#9a734c]">
-                                    <span className="material-symbols-outlined text-2xl">search</span>
-                                </div>
-                                <input
-                                    type="text"
-                                    placeholder="e.g., Mocha, Latte, Americano..."
-                                    value={drinkName}
-                                    onChange={(e) => setDrinkName(e.target.value)}
-                                    className="block w-full pl-10 pr-3 py-3 border-none rounded-lg bg-[#f3ede7] dark:bg-[#2c2016] text-[#1b140d] dark:text-white placeholder-[#9a734c] focus:ring-2 focus:ring-primary focus:outline-none transition-shadow"
-                                />
-                            </div>
-                        </div> */}
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                            {/* Latte */}
-                            <label className="cursor-pointer group">
-                                <input defaultChecked className="peer sr-only" name="drink_type" type="radio" />
-                                <div className="flex flex-col gap-3 pb-3 p-3 rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 hover:bg-gray-50 dark:hover:bg-[#2c2016] transition-all">
-                                    <div className="w-full aspect-square bg-center bg-cover rounded-lg overflow-hidden relative">
-                                        <div className="absolute inset-0 bg-black/10" />
-                                        <div
-                                            className="w-full h-full bg-cover bg-center"
-                                            data-alt="Latte art heart shape in white cup"
-                                            style={{
-                                                backgroundImage:
-                                                    "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAVzZS9IjcSAw4o2Xmd5dO5-iTjx_ztFrne56H-Hn_9OPHcTlDQkaKFF1lxXDgyM7dZyCY3_pBA-of-PJSxlw5H5irCy69OQkdcB0_OLDBk8y7iEtwTTGWQidBXWdLcWzbxYfz0YzVETp-lj3vbX8hVBYThGaSfTP4j3O6qyKHjQ77fp4b5IZo6Z2_k1W-hrddWxvnnK8_a7BNhmwmBynw3pKWsjiT4iWRq85QK9iBStVZ4AqZucwRHUY2h0LV-Lu5uq5bx3_pFZdk')",
-                                            }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <p className="text-[#1b140d] dark:text-white text-base font-bold leading-normal">Latte</p>
-                                        <p className="text-[#9a734c] text-sm font-normal leading-normal">Steamed milk</p>
-                                    </div>
+                        <div className="mb-6">
+                            {loadingMenuItem || loadingMenu ? (
+                                <div className="flex items-center justify-center py-10 text-sm text-[#9a734c]">
+                                    Đang tải thông tin menu...
                                 </div>
-                            </label>
+                            ) : orderedMenuItems.length > 0 ? (
+                                <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+                                    {orderedMenuItems.map((item) => {
+                                        const isSelected = item.menuItemId === menuItem?.menuItemId;
+                                        const name = item.shopRecipe?.recipeName || item.shopBeverage?.name || 'Đồ uống';
+                                        const sellingPrice = item.sellingPrice || '';
+                                        const imageUrl = item.shopRecipe?.image || item.shopBeverage?.imageUrl || DEFAULT_DRINK_IMAGE;
 
-                            {/* Cappuccino */}
-                            <label className="cursor-pointer group">
-                                <input className="peer sr-only" name="drink_type" type="radio" />
-                                <div className="flex flex-col gap-3 pb-3 p-3 rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 hover:bg-gray-50 dark:hover:bg-[#2c2016] transition-all">
-                                    <div className="w-full aspect-square bg-center bg-cover rounded-lg overflow-hidden relative">
-                                        <div
-                                            className="w-full h-full bg-cover bg-center"
-                                            data-alt="Cappuccino with cocoa powder dusting"
-                                            style={{
-                                                backgroundImage:
-                                                    "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAe36Cj3a1paPFOkgrVhMeegFUo_mX7GQZ5Ij0j1bfTiYYkjK8Jomm0HbPLdyD0MQkwt02oZfO1YkSSiiAfP93PHZATeeaAAocM7doshSypTFxVf7-hjmTCrEosszxIfbmTR7b9JOnQD4EdnAjau96LfKN00_eNWAzNzLQC2zo85DP_9G-xVJdd18LsRe0eDUMPssX2b28uVwoHUxcxlMjrxsiQA5JSHxDwPRtDW6Nf89hC-wRQicTrpWBPNIPUPbbukv2vKgBJ5oA')",
-                                            }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <p className="text-[#1b140d] dark:text-white text-base font-bold leading-normal">Cappuccino</p>
-                                        <p className="text-[#9a734c] text-sm font-normal leading-normal">Foamy delight</p>
-                                    </div>
+                                        return (
+                                            <label
+                                                key={item.menuItemId}
+                                                className="cursor-pointer group min-w-[150px] sm:min-w-[180px] md:min-w-[200px]"
+                                            >
+                                                <input
+                                                    className="peer sr-only"
+                                                    name="drink_type"
+                                                    type="radio"
+                                                    checked={isSelected}
+                                                    readOnly
+                                                />
+                                                <div className="flex flex-col gap-3 pb-3 p-3 rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 hover:bg-gray-50 dark:hover:bg-[#2c2016] transition-all">
+                                                    <div className="w-full aspect-square bg-center bg-cover rounded-lg overflow-hidden relative">
+                                                        <div className="absolute inset-0 bg-black/10" />
+                                                        <div
+                                                            className="w-full h-full bg-cover bg-center"
+                                                            data-alt={name}
+                                                            style={{
+                                                                backgroundImage: `url('${imageUrl}')`,
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[#1b140d] dark:text-white text-base font-bold leading-normal">{name}</p>
+                                                        {sellingPrice && (
+                                                            <p className="text-[#9a734c] text-sm font-normal leading-normal">{sellingPrice} VND</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        );
+                                    })}
                                 </div>
-                            </label>
-
-                            {/* Cold Brew */}
-                            <label className="cursor-pointer group">
-                                <input className="peer sr-only" name="drink_type" type="radio" />
-                                <div className="flex flex-col gap-3 pb-3 p-3 rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 hover:bg-gray-50 dark:hover:bg-[#2c2016] transition-all">
-                                    <div className="w-full aspect-square bg-center bg-cover rounded-lg overflow-hidden relative">
-                                        <div
-                                            className="w-full h-full bg-cover bg-center"
-                                            data-alt="Iced cold brew coffee in glass with ice"
-                                            style={{
-                                                backgroundImage:
-                                                    "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBna9tcJQAaUO9NG8nFo1HD3Xysd-EipQmAn-3f1se3bFpw_ynjMVgoCvn9vlOFSf-oXopNOrQqFBbIpQjdtYXl3MHJqpAUFerVUt0CrPy9m-W8Eos91fTRrvRFNDgAjPcrYbbBCHuSei0PuPgRmTECJc4j9KUv_bjSf-rzrRYMIDBWbZLIbw7NNA8ZNiyAW-W54vQa5w529-2mIT3-iAfOc4u53VWDRhfnWq81hZvW25lrPZicyGkI0O7eDBs7n4r_LkjfaeooOL8')",
-                                            }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <p className="text-[#1b140d] dark:text-white text-base font-bold leading-normal">Cold Brew</p>
-                                        <p className="text-[#9a734c] text-sm font-normal leading-normal">Chilled brew</p>
-                                    </div>
+                            ) : (
+                                <div className="flex items-center justify-center py-10 text-sm text-red-500">
+                                    Không tìm thấy danh sách đồ uống trong menu.
                                 </div>
-                            </label>
-
-                            {/* Espresso */}
-                            <label className="cursor-pointer group">
-                                <input className="peer sr-only" name="drink_type" type="radio" />
-                                <div className="flex flex-col gap-3 pb-3 p-3 rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 hover:bg-gray-50 dark:hover:bg-[#2c2016] transition-all">
-                                    <div className="w-full aspect-square bg-center bg-cover rounded-lg overflow-hidden relative">
-                                        <div
-                                            className="w-full h-full bg-cover bg-center"
-                                            data-alt="Single shot of dark espresso in small cup"
-                                            style={{
-                                                backgroundImage:
-                                                    "url('https://lh3.googleusercontent.com/aida-public/AB6AXuB10PlWzU2sGr_vczG4kdQjNm27_a18zjipYDQ7X8ypGvkAhg93NKLVKF0EMEtsFdYQZFVzFFKL3c1p2TWqoAy2zXkySw--GopEN6bWxfVCNPgIOWg_y5eH2_SCZry93I3fX4TmyAIyJC6dc_ZKo3HLGiozWgU-9ZCWIWenqkBPZe3gvtgRbq9PYndiT3Wyd_Pi784cMLpxUyd-AT_jUg-z0z1Sar4XUVEYq9UzTNlVyxuPWbLvIoCl1arS0Gp92qXirh2YoRoUtDQ')",
-                                            }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <p className="text-[#1b140d] dark:text-white text-base font-bold leading-normal">Espresso</p>
-                                        <p className="text-[#9a734c] text-sm font-normal leading-normal">Strong shot</p>
-                                    </div>
-                                </div>
-                            </label>
+                            )}
                         </div>
+
+                        {menuItem && (
+                            <p className="text-sm text-[#9a734c] mb-4">
+                                Bạn đang đánh giá:{' '}
+                                <span className="font-semibold">
+                                    {menuItem.shopRecipe?.recipeName || menuItem.shopBeverage?.name || 'Đồ uống đã chọn'}
+                                </span>
+                            </p>
+                        )}
 
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-[#fcfaf8] dark:bg-[#2c2016] rounded-lg">
                             <span className="text-base font-medium text-[#1b140d] dark:text-white">
