@@ -25,6 +25,12 @@ type UserProfile = {
     role: string
     phone?: string | null
     status?: string | null
+    // Supplier-specific fields
+    supplierId?: number | null
+    supplierName?: string | null
+    address?: string | null
+    rating?: number | null
+    // Legacy / other fields kept for compatibility
     coffeeShopId?: number | null
     shopName?: string | null
     image?: string | null

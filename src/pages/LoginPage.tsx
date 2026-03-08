@@ -5,11 +5,11 @@ import { AuthHeader } from "@/components/auth/AuthHeader";
 import { AuthTabs } from "@/components/auth/AuthTabs";
 import { AuthField } from "@/components/auth/AuthField";
 import { Button } from "@/components/ui/button";
-import { useAuthStore } from "../stores/auth.store"
+import { useAuthStore } from "../stores/auth.store";
 import { toast } from "sonner";
 export function LoginPage() {
     const navigate = useNavigate();
-    const { login, isLoading, error } = useAuthStore();
+    const { login, isLoading, error, fetchCurrentUser, logout } = useAuthStore();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -20,9 +20,18 @@ export function LoginPage() {
 
         try {
             await login({ email, password });
-            navigate("/dashboard");
+            const user = await fetchCurrentUser();
+
+            if (user?.role === "Admin") {
+                navigate("/admin/dashboard");
+            } else if (user?.role === "Supplier") {
+                navigate("/supplier/dashboard");
+            } else {
+                toast.error("Tài khoản không có quyền truy cập ứng dụng này.");
+                logout();
+            }
         } catch (err: Error | any) {
-            toast.error("Login failed:", err);
+            toast.error("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
         }
     };
 
