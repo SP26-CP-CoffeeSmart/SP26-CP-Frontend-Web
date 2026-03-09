@@ -1,9 +1,14 @@
 import { Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
-import { Home } from './pages/Home';
-import { Recipes } from './pages/Recipes';
-import { RecipeDetail } from './pages/RecipeDetail';
-import { CoffeeShopPage } from './pages/CoffeeShop';
+import { AdminHome } from './pages/admin/Home';
+import { SupplierHome } from './pages/supplier/Home';
+import { Recipes } from './pages/admin/Recipes';
+import { RecipeDetail } from './pages/admin/RecipeDetail';
+import { CoffeeShopPage } from './pages/admin/CoffeeShop';
+import { SupplierOrders } from './pages/supplier/Order';
+import { SupplierOrderDetail } from './pages/supplier/OrderDetail';
+import { SupplierProducts } from './pages/supplier/Product';
+import { SupplierProductDetail } from './pages/supplier/ProductDetail';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { FeedbackPage } from './pages/FeedbackPage';
@@ -19,22 +24,22 @@ function App() {
             {/* Public register page without dashboard layout */}
             <Route path="/register" element={<RegisterPage />} />
 
-            {/* Admin dashboard area with sidebar/header */}
+            {/* Admin area */}
             <Route
-                path="/dashboard"
+                path="/admin/dashboard"
                 element={(
-                    <ProtectedRoute allowedRoles={["Supplier", "Admin"]}>
+                    <ProtectedRoute allowedRoles={["Admin"]}>
                         <Layout>
-                            <Home />
+                            <AdminHome />
                         </Layout>
                     </ProtectedRoute>
                 )}
             />
 
             <Route
-                path="/recipes"
+                path="/admin/recipes"
                 element={(
-                    <ProtectedRoute allowedRoles={["Supplier", "Admin"]}>
+                    <ProtectedRoute allowedRoles={["Admin"]}>
                         <Layout>
                             <Recipes />
                         </Layout>
@@ -43,9 +48,9 @@ function App() {
             />
 
             <Route
-                path="/recipes/:id"
+                path="/admin/recipes/:id"
                 element={(
-                    <ProtectedRoute allowedRoles={["Supplier", "Admin"]}>
+                    <ProtectedRoute allowedRoles={["Admin"]}>
                         <Layout>
                             <RecipeDetail />
                         </Layout>
@@ -54,11 +59,67 @@ function App() {
             />
 
             <Route
-                path="/coffee-shop"
+                path="/admin/coffee-shop"
                 element={(
-                    <ProtectedRoute allowedRoles={["Supplier", "Admin"]}>
+                    <ProtectedRoute allowedRoles={["Admin"]}>
                         <Layout>
                             <CoffeeShopPage />
+                        </Layout>
+                    </ProtectedRoute>
+                )}
+            />
+
+            {/* Supplier area */}
+            <Route
+                path="/supplier/dashboard"
+                element={(
+                    <ProtectedRoute allowedRoles={["Supplier"]}>
+                        <Layout>
+                            <SupplierHome />
+                        </Layout>
+                    </ProtectedRoute>
+                )}
+            />
+
+            <Route
+                path="/supplier/orders"
+                element={(
+                    <ProtectedRoute allowedRoles={["Supplier"]}>
+                        <Layout>
+                            <SupplierOrders />
+                        </Layout>
+                    </ProtectedRoute>
+                )}
+            />
+
+            <Route
+                path="/supplier/orders/:id"
+                element={(
+                    <ProtectedRoute allowedRoles={["Supplier"]}>
+                        <Layout>
+                            <SupplierOrderDetail />
+                        </Layout>
+                    </ProtectedRoute>
+                )}
+            />
+
+            <Route
+                path="/supplier/products"
+                element={(
+                    <ProtectedRoute allowedRoles={["Supplier"]}>
+                        <Layout>
+                            <SupplierProducts />
+                        </Layout>
+                    </ProtectedRoute>
+                )}
+            />
+
+            <Route
+                path="/supplier/products/:id"
+                element={(
+                    <ProtectedRoute allowedRoles={["Supplier"]}>
+                        <Layout>
+                            <SupplierProductDetail />
                         </Layout>
                     </ProtectedRoute>
                 )}

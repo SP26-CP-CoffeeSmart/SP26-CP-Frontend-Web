@@ -1,28 +1,41 @@
 import { ChevronLeft, Home, ShoppingCart, Truck, CreditCard, Package, Settings, Coffee } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSidebar } from '../context/SidebarContext';
+import { useAuthStore } from '@/stores/auth.store';
 import { authService } from '../apis/auth.service';
 import { toast } from 'sonner';
 export function Sidebar() {
     const { isCollapsed, setIsCollapsed } = useSidebar();
     const location = useLocation();
     const navigate = useNavigate();
-    const menuItems = [
-        { icon: Home, label: 'Home', href: '/dashboard' },
-        { icon: Coffee, label: 'Recipes', href: '/recipes' },
-        { icon: Coffee, label: 'Coffee Shop', href: '/coffee-shop' },
-        { icon: ShoppingCart, label: 'Orders', href: '/orders' },
-        { icon: Truck, label: 'Shipping', href: '/shipping' },
-        { icon: CreditCard, label: 'Payment', href: '/payment' },
-        { icon: Package, label: 'Inventory', href: '/inventory' },
-    ];
+    const { currentUser, logout } = useAuthStore();
+
+    const role = currentUser?.role;
+
+    const menuItems = role === 'Admin'
+        ? [
+            { icon: Home, label: 'Dashboard', href: '/admin/dashboard' },
+            { icon: Coffee, label: 'Recipes', href: '/admin/recipes' },
+            { icon: Coffee, label: 'Coffee Shop', href: '/admin/coffee-shop' },
+        ]
+        : role === 'Supplier'
+            ? [
+                { icon: Home, label: 'Dashboard', href: '/supplier/dashboard' },
+                { icon: ShoppingCart, label: 'Orders', href: '/supplier/orders' },
+                { icon: Package, label: 'Products', href: '/supplier/products' },
+            ]
+            : [];
 
     const isActive = (href: string) => {
-        return location.pathname === href;
+        return location.pathname === href || location.pathname.startsWith(`${href}/`);
     };
     const handleLogout = async () => {
         try {
+            // Clear local auth state first
+
+            // Best-effort API logout
             await authService.logout();
+            logout();
             navigate("/");
             toast.success("Logged out successfully");
         } catch (err: Error | any) {
