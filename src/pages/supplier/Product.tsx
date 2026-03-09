@@ -169,12 +169,11 @@ export function SupplierProducts() {
                                         <TableHead className="w-24">ID</TableHead>
                                         <TableHead>Ingredient Name</TableHead>
                                         <TableHead>Category</TableHead>
-                                        <TableHead className="text-right">Price</TableHead>
-                                        <TableHead className="text-right">Stock</TableHead>
-                                        <TableHead>Unit</TableHead>
-                                        <TableHead className="text-right">Created At</TableHead>
-                                        <TableHead className="text-right">Status</TableHead>
-                                        <TableHead className="text-right">Action</TableHead>
+                                        <TableHead className="text-center">Price</TableHead>
+                                        <TableHead className="text-center">Stock</TableHead>
+                                        <TableHead className="text-center">Created At</TableHead>
+                                        <TableHead className="text-center">Status</TableHead>
+                                        <TableHead className="text-center">Action</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -194,32 +193,26 @@ export function SupplierProducts() {
                                             <TableCell className="text-[#707070]">
                                                 {p.ingredient?.category ?? "-"}
                                             </TableCell>
-                                            <TableCell className="text-right font-medium text-[#573E32]">
+                                            <TableCell className="text-center font-medium text-[#573E32]">
                                                 {formatPrice(p.price)}
                                             </TableCell>
-                                            <TableCell className="text-right text-[#573E32]">
-                                                {p.stock}
+                                            <TableCell className="text-center text-[#573E32]">
+                                                {p.stock} {p.measurement}
                                             </TableCell>
-                                            <TableCell className="text-[#707070]">
-                                                {p.measurement}
-                                            </TableCell>
-                                            <TableCell className="text-right text-xs text-[#707070]">
+                                            <TableCell className="text-center text-xs text-[#707070]">
                                                 {formatDateTime(p.createDate)}
                                             </TableCell>
-                                            <TableCell className="text-right text-xs">
+                                            <TableCell className="text-center text-xs">
                                                 {renderStatus(p.status)}
                                             </TableCell>
                                             <TableCell>
-                                                <div className="flex justify-end gap-2 text-[#B0A49E]">
+                                                <div className="flex justify-center gap-2 text-[#B0A49E]">
                                                     <button
-                                                        className="hover:text-red-500"
-                                                        aria-label="Delete"
-                                                        onClick={() => {
-                                                            setDeletingProduct(p);
-                                                            setConfirmDeleteOpen(true);
-                                                        }}
+                                                        className="hover:text-[#573E32]"
+                                                        aria-label="View"
+                                                        onClick={() => navigate(`/supplier/products/${p.productId}`)}
                                                     >
-                                                        <Trash2 size={16} />
+                                                        <Eye size={16} />
                                                     </button>
                                                     <button
                                                         className="hover:text-[#573E32]"
@@ -232,11 +225,14 @@ export function SupplierProducts() {
                                                         <Pencil size={16} />
                                                     </button>
                                                     <button
-                                                        className="hover:text-[#573E32]"
-                                                        aria-label="View"
-                                                        onClick={() => navigate(`/supplier/products/${p.productId}`)}
+                                                        className="hover:text-red-500"
+                                                        aria-label="Delete"
+                                                        onClick={() => {
+                                                            setDeletingProduct(p);
+                                                            setConfirmDeleteOpen(true);
+                                                        }}
                                                     >
-                                                        <Eye size={16} />
+                                                        <Trash2 size={16} />
                                                     </button>
                                                 </div>
                                             </TableCell>

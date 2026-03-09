@@ -26,6 +26,16 @@ type RegisterResponse = {
     message?: string;
 };
 
+export type UpdateSupplierPayload = {
+    supplierId?: number;
+    accountId: number;
+    supplierName: string;
+    address: string;
+    rating?: number;
+    createDate?: string;
+    withdrawDate?: string;
+};
+
 export const authService = {
     login: async (payload: LoginPayload) => {
         const response = await api.post<LoginResponse>("/Auth/login", payload);
@@ -53,6 +63,11 @@ export const authService = {
     },
     getProfile: async () => {
         const response = await api.get("/Auth/me");
+        return response.data;
+    },
+
+    updateSupplier: async (payload: UpdateSupplierPayload) => {
+        const response = await api.put("/Auth/update-supplier", payload);
         return response.data;
     },
 

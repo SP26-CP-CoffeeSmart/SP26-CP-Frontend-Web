@@ -21,7 +21,7 @@ export function Loading() {
     }, [messages.length]);
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-[#F2E6DA] px-4">
+        <div className="flex min-h-screen items-center justify-center px-4">
             <div className="w-full max-w-md px-6 py-7 ">
                 <div className="flex flex-col items-center justify-center">
                     <div className="flex items-center justify-center">

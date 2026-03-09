@@ -26,4 +26,8 @@ export const supplierOrderService = {
     getById: async (id: number) => {
         return api.get<SupplierOrder>(`/Order/${id}`);
     },
+
+    updateStatus: async (id: number, status: string) => {
+        return api.patch<SupplierOrder>(`/Order/${id}/status`, { status });
+    },
 };

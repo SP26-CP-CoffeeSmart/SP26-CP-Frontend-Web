@@ -93,7 +93,7 @@ export function RegisterPage() {
         try {
             await verifyOtp({ email, otp, role });
             toast.success("Email verified successfully!");
-            navigate("/dashboard");
+            navigate("/supplier/dashboard");
         } catch (err: any) {
             toast.error(err.message || "OTP verification failed");
         }
