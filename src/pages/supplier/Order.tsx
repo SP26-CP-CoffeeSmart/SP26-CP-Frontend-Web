@@ -5,6 +5,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { supplierOrderService, type SupplierOrder } from "@/apis/supplierOrder.service";
 import { useAuthStore } from "@/stores/auth.store";
 import { useNavigate } from "react-router-dom";
+import { InlineLoading } from "@/components/Loading";
 
 export function SupplierOrders() {
     const navigate = useNavigate();
@@ -153,8 +154,8 @@ export function SupplierOrders() {
                                     ))}
                                     {loading && (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="py-6 text-center text-[#707070]">
-                                                Loading orders...
+                                            <TableCell colSpan={5} className="py-6 text-center">
+                                                <InlineLoading text="Loading orders..." />
                                             </TableCell>
                                         </TableRow>
                                     )}

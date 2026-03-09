@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Building2, MapPin } from "lucide-react";
 import { Table, TableBody, TableHeader, TableHead, TableRow, TableCell } from "@/components/ui/table";
+import { InlineLoading } from "@/components/Loading";
 import { coffeeShopService } from "@/apis/coffeeShop.service";
 
 type CoffeeShop = {
@@ -104,8 +105,8 @@ export function CoffeeShopPage() {
                                     ))}
                                     {loading && (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="py-6 text-center text-[#707070]">
-                                                Đang tải danh sách Coffee Shop...
+                                            <TableCell colSpan={4} className="py-6 text-center">
+                                                <InlineLoading text="Đang tải danh sách Coffee Shop..." />
                                             </TableCell>
                                         </TableRow>
                                     )}

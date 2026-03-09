@@ -5,6 +5,7 @@ import { AuthHeader } from "@/components/auth/AuthHeader";
 import { AuthTabs } from "@/components/auth/AuthTabs";
 import { AuthField } from "@/components/auth/AuthField";
 import { Button } from "@/components/ui/button";
+import { InlineLoading } from "@/components/Loading";
 import { useAuthStore } from "../stores/auth.store";
 import { toast } from "sonner";
 export function LoginPage() {
@@ -118,7 +119,11 @@ export function LoginPage() {
                         disabled={isLoading}
                         className="w-full font-bold active:scale-[0.99] mt-4"
                     >
-                        {isLoading ? "Signing In..." : "Sign In"}
+                        {isLoading ? (
+                            <InlineLoading text="Signing In..." textClassName="text-white" />
+                        ) : (
+                            "Sign In"
+                        )}
                     </Button>
                 </form>
 

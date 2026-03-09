@@ -10,6 +10,7 @@ import { SupplierProductEditDialog } from "@/components/SupplierProductEditDialo
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { InlineLoading } from "@/components/Loading";
 
 export function SupplierProducts() {
     const currentUser = useAuthStore((state) => state.currentUser);
@@ -243,8 +244,8 @@ export function SupplierProducts() {
                                     ))}
                                     {loading && (
                                         <TableRow>
-                                            <TableCell colSpan={9} className="py-6 text-center text-[#707070]">
-                                                Loading products...
+                                            <TableCell colSpan={9} className="py-6 text-center">
+                                                <InlineLoading text="Loading products..." />
                                             </TableCell>
                                         </TableRow>
                                     )}

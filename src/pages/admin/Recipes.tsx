@@ -11,6 +11,7 @@ import {
     PaginationEllipsis,
 } from "@/components/ui/pagination";
 import { Table, TableBody, TableHeader, TableHead, TableRow, TableCell } from "@/components/ui/table";
+import { InlineLoading } from "@/components/Loading";
 import { RecipeCreateDialog } from "@/components/RecipeCreateDialog";
 import { recipeService } from "@/apis/recipe.service";
 import { toast } from "sonner";
@@ -179,8 +180,8 @@ export function Recipes() {
                                     ))}
                                     {loading && (
                                         <TableRow>
-                                            <TableCell colSpan={6} className="py-6 text-center text-[#707070]">
-                                                Đang tải danh sách recipe...
+                                            <TableCell colSpan={6} className="py-6 text-center">
+                                                <InlineLoading text="Đang tải danh sách recipe..." />
                                             </TableCell>
                                         </TableRow>
                                     )}
